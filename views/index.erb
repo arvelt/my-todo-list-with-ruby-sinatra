@@ -1,0 +1,19 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<title>
+</title>
+<body>
+	<table>
+		<th>内容</th><th>状況</th><th>期限</th>
+		<% @todos.each do |todo|%>
+		<tr>
+			<td><%= todo[:content] %></td><td><%= todo[:status] %></td><td><%= todo[:due_date] %></td>
+			<td><input type="button" value="更新"/></td>
+			<td><input type="button" value="削除"/></td>
+		</tr>
+		<% end%>
+	</table>
+</body>
+</html>
