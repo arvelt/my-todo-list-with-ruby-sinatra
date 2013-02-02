@@ -2,6 +2,8 @@ require 'sinatra'
 require "sinatra/reloader" if development?
 require 'Sequel'
 require "./models/todo"
+require 'slim'
+Slim::Engine.default_options[:pretty] = true  #出力htmlを整形する設定  true=>する,false=>しない
 
 get '/' do
   
@@ -10,7 +12,7 @@ get '/' do
   @todos = Todo.all
   p "test"
   p @todos
-  erb :index
+  slim :index
 end
 
 post '/add' do

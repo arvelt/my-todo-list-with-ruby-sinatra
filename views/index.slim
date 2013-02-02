@@ -1,0 +1,50 @@
+doctype html
+html
+  head
+  body
+    form id="form" action="/add" method="post"
+      p Todo追加
+
+	  table name="input_task"
+        th 
+	    th 内容
+	    th 期限
+	    tr  
+	      td  
+	        input type="submit" value="追加"
+		  td  
+		    input type="text" name="send_content" id="send_content"
+		  td  
+		    input type="text" name="send_duedatetime" id="send_duedatetime"
+
+      p  Todo一覧
+      
+      table id="tasks"
+        - if @todos 
+          th 
+          th 
+	      th 状況
+	      th 期限
+	      th 内容
+      
+        - for todo in @todos 
+          tr
+            td 
+              input type="button" value="更新"
+            td 
+              input type="button" value="削除"
+            td 
+              select id="status" name="status"
+                -  if  todo.status == 1
+                   option value="1" selected="selected"  未完了
+                -  else
+                   option value="1" 未完了
+                -  if  todo.status == 2
+                   option value="2" selected="selected"  完了
+                -  else
+                   option value="2" 完了
+            td 
+              input type="text" value="#{todo.due_date}"
+            td 
+              input type="text" value="#{todo.content}"
+            
