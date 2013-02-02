@@ -1,12 +1,13 @@
 Sequel.migration do
   up do
-    create_table :todo do
+    create_table :todos do
       primary_key :id
       string :user_id
       string :status
       string :content
-      timestamp :due_date
-      timestamp :created_at
+      time :due_date
+      time :updated_at
+      time :created_at
     end
   end
 
