@@ -4,7 +4,7 @@ html
     script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"
     javascript:
       function doAddTask(){
-    	$.ajax({
+    	  $.ajax({
     	    url: '/add',
     	    type: 'POST',
     	    data: {
@@ -20,8 +20,34 @@ html
     	    },
     	    complete: function( data ) {
     	    }
-    	});
+    	  });
       }
+    javascript:
+      function doUpdateTask(key){
+        var id_status = "status_"+key;
+        var id_content = "content_"+key;
+        var id_datetime = "due_date_"+key;
+        $.ajax({
+          url: '/update',
+          type: 'POST',
+          data: {
+                "key" : key ,
+                "status" : $('#'+id_status).val() ,
+                "content" : $('#'+id_content).val() ,
+                "due_date" : $('#'+id_datetime).val()
+          },
+          dataType: 'html',
+          success: function( data ) {
+          $('#taskslist').html(data);
+          //setInputDateTimePicker();
+          },
+          error: function( data ) {
+          },
+          complete: function( data ) {
+          }
+        });
+      }
+    javascript:
       function doDeleteTask(key){
     	$.ajax({
     	    url: '/delete',
@@ -38,7 +64,7 @@ html
     	    },
     	    complete: function( data ) {
     	    }
-    	});
+      	});
       }
   body
     form id="form" action="/add" method="post"
@@ -60,7 +86,6 @@ html
       
       div id="taskslist"
         table id="tasks"
-          #{@todos.length}
           - if @todos.length != 0 
             thead 
               th 
@@ -73,7 +98,7 @@ html
             - for todo in @todos 
               tr
                 td 
-                  input type="button" value="更新"
+                  input type="button" value="更新" onClick="doUpdateTask(#{todo.id})"
                 td 
                   input type="button" value="削除" onClick="doDeleteTask(#{todo.id})"
                 td 

@@ -46,8 +46,35 @@ post '/delete' do
   key = params[:key]
     
   #取得したパラメーターを元にtodoモデルを作成
-  @todo = Todo.where(:id=>key)
+  @todo = Todo[:id=>key]
   @todo.destroy
+  
+  #全てのtodoを取得して返す
+  @todos = Todo.all
+  slim :list
+end
+
+post '/update' do
+  
+  p params[:key]
+  p params[:status]
+  p params[:content]
+  p params[:due_date]
+
+  #パラメタ取得
+  key =  params[:key]
+  status =  params[:status]
+  content = params[:content]
+  due_date = params[:due_date]
+    
+  #主キーでモデルを取得し、更新して保存
+  @todo = Todo[:id=>key]
+  @todo.update(
+    :status => status,
+    :content => content,
+    :due_date => nil
+  )
+  @todo.save
   
   #全てのtodoを取得して返す
   @todos = Todo.all
