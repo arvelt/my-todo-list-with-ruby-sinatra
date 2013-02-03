@@ -1,17 +1,56 @@
 doctype html
 html
   head
+    script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"
+    javascript:
+      function doAddTask(){
+    	$.ajax({
+    	    url: '/add',
+    	    type: 'POST',
+    	    data: {
+       	        "send_content" : $('#send_content').val() ,
+       	        "send_duedatetime" : $('#send_duedatetime').val() 
+    	    },
+    	    dataType: 'html',
+    	    success: function( data ) {
+				    $('#taskslist').html(data);
+				    //setInputDateTimePicker();
+    	    },
+    	    error: function( data ) {
+    	    },
+    	    complete: function( data ) {
+    	    }
+    	});
+      }
+      function doDeleteTask(key){
+    	$.ajax({
+    	    url: '/delete',
+    	    type: 'POST',
+    	    data: {
+       	        "key" : key 
+    	    },
+    	    dataType: 'html',
+    	    success: function( data ) {
+				$('#taskslist').html(data);
+				//setInputDateTimePicker();
+    	    },
+    	    error: function( data ) {
+    	    },
+    	    complete: function( data ) {
+    	    }
+    	});
+      }
   body
     form id="form" action="/add" method="post"
       p Todo追加
 
 	  table name="input_task"
-        th 
+      th 
 	    th 内容
 	    th 期限
 	    tr  
 	      td  
-	        input type="submit" value="追加"
+	        input type="button" value="追加" onClick="doAddTask()"
 		  td  
 		    input type="text" name="send_content" id="send_content"
 		  td  
@@ -19,32 +58,35 @@ html
 
       p  Todo一覧
       
-      table id="tasks"
-        - if @todos 
-          th 
-          th 
-	      th 状況
-	      th 期限
-	      th 内容
-      
-        - for todo in @todos 
-          tr
-            td 
-              input type="button" value="更新"
-            td 
-              input type="button" value="削除"
-            td 
-              select id="status" name="status"
-                -  if  todo.status == 1
-                   option value="1" selected="selected"  未完了
-                -  else
-                   option value="1" 未完了
-                -  if  todo.status == 2
-                   option value="2" selected="selected"  完了
-                -  else
-                   option value="2" 完了
-            td 
-              input type="text" value="#{todo.due_date}"
-            td 
-              input type="text" value="#{todo.content}"
-            
+      div id="taskslist"
+        table id="tasks"
+          #{@todos.length}
+          - if @todos.length != 0 
+            thead 
+              th 
+              th 
+              th 状況
+              th 期限
+              th 内容
+        
+          tbody
+            - for todo in @todos 
+              tr
+                td 
+                  input type="button" value="更新"
+                td 
+                  input type="button" value="削除" onClick="doDeleteTask(#{todo.id})"
+                td 
+                  select id="status_#{todo.id}" name="status"
+                    -  if  todo.status == 1
+                       option value="1" selected="selected"  未完了
+                    -  else
+                       option value="1" 未完了
+                    -  if  todo.status == 2
+                       option value="2" selected="selected"  完了
+                    -  else
+                       option value="2" 完了
+                td 
+                  input type="text" id="due_date_#{todo.id}" value="#{todo.due_date}"
+                td 
+                  input type="text" id="content_#{todo.id}" value="#{todo.content}"

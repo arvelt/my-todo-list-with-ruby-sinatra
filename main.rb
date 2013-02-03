@@ -28,7 +28,6 @@ post '/add' do
   
   
   #取得したパラメーターを元にtodoモデルを作成
-  
   @todo = Todo.new()
   @todo.user_id = "111"
   @todo.status = "1"
@@ -36,5 +35,21 @@ post '/add' do
   @todo.due_date = due_date
   @todo.save
   
-  redirect '/'
+  #全てのtodoを取得して返す
+  @todos = Todo.all
+  slim :list
+end
+
+post '/delete' do
+  
+  p params[:key]
+  key = params[:key]
+    
+  #取得したパラメーターを元にtodoモデルを作成
+  @todo = Todo.where(:id=>key)
+  @todo.destroy
+  
+  #全てのtodoを取得して返す
+  @todos = Todo.all
+  slim :list
 end
