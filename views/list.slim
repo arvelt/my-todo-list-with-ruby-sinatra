@@ -1,29 +1,31 @@
-table id="tasks"
-  - if @todos.length != 0 
-    thead 
-      th 
-      th 
-      th 状況
-      th 期限
-      th 内容
+- if @todos.length != 0
+  span class="label label-info" Todo一覧
+  table id="tasks" class="table table-striped"
+    - if @todos.length != 0
+      thead 
+        th 
+        th 
+        th 状況
+        th 期限
+        th 内容
 
-  - for todo in @todos 
-    tr
-      td 
-        input type="button" value="更新" onClick="doUpdateTask(#{todo.id})"
-      td 
-        input type="button" value="削除" onClick="doDeleteTask(#{todo.id})"
-      td 
-        select id="status_#{todo.id}" name="status"
-          -  if  todo.status == 1
-             option value="1" selected="selected"  未完了
-          -  else
-             option value="1" 未完了
-          -  if  todo.status == 2
-             option value="2" selected="selected"  完了
-          -  else
-             option value="2" 完了
-      td 
-        input type="text" id="due_date_#{todo.id}" value="#{todo.due_date}"
-      td 
-        input type="text" id="content_#{todo.id}" value="#{todo.content}"
+    - for todo in @todos 
+      tr
+        td 
+          input type="button" value="更新" onClick="doUpdateTask(#{todo.id})"
+        td 
+          input type="button" value="削除" onClick="doDeleteTask(#{todo.id})"
+        td 
+          select id="status_#{todo.id}" name="status"
+            -  if  todo.status == 1
+               option value="1" selected="selected"  未完了
+            -  else
+               option value="1" 未完了
+            -  if  todo.status == 2
+               option value="2" selected="selected"  完了
+            -  else
+               option value="2" 完了
+        td 
+          input type="text" id="due_date_#{todo.id}" value="#{todo.due_date}"
+        td 
+          input type="text" id="content_#{todo.id}" value="#{todo.content}"
