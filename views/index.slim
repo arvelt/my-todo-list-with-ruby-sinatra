@@ -7,8 +7,10 @@ html
     script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"
     script src="/js/jquery-ui-timepicker-addon.js"
     script src="/js/jquery-ui-sliderAccess.js"
+    script src="/js/bootstrap-select.min.js"
     link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.10.0.custom.min.css"
     link rel="stylesheet" type="text/css" href="/css/jquery-ui-timepicker-addon.css"
+    link rel="stylesheet" type="text/css" href="/css/bootstrap-select.min.css"
     javascript:
       function doAddTask(){
     	  $.ajax({
@@ -91,7 +93,7 @@ html
 
   body
     div class="container"
-      form id="form" action="/add" method="post"
+      form id="form" action="" method="post"
         span class="label label-info" Todoの追加
 
         div class="row"
@@ -99,16 +101,17 @@ html
             table id="input_task" class="table table-striped"
               thead
                 th 
-                th 内容
                 th 期限
+                th 内容
               tbody
                 tr
                   td
-                    input type="button" value="追加" onClick="doAddTask()"
-                  td
-                    input type="text" id="send_content"
+                    input type="button" class="btn" value="追加" onClick="doAddTask()"
                   td
                     input type="text" id="send_duedatetime"
+                  td
+                    input type="text" id="send_content"
+                    
           div class="span4"
 
         div class="row"
@@ -129,22 +132,25 @@ html
                     - for todo in @todos 
                       tr
                         td 
-                          input type="button" value="更新" onClick="doUpdateTask(#{todo.id})"
+                          input type="button" class="btn" value="更新" onClick="doUpdateTask(#{todo.id})"
                         td 
-                          input type="button" value="削除" onClick="doDeleteTask(#{todo.id})"
-                        td 
-                          select id="status_#{todo.id}" name="status"
+                          input type="button" class="btn" value="削除" onClick="doDeleteTask(#{todo.id})"
+                        td
+                          select id="status_#{todo.id}" name="status" 
                             -  if  todo.status == 1
-                               option value="1" selected="selected"  未完了
+                              option value="1" selected="selected"  未完了 
                             -  else
-                               option value="1" 未完了
+                              option value="1" 未完了 
                             -  if  todo.status == 2
-                               option value="2" selected="selected"  完了
+                              option value="2" selected="selected"  完了 
                             -  else
-                               option value="2" 完了
-                        td 
-                          input type="text" name="datetime" id="due_date_#{todo.id}" value="#{todo.due_date}"
-                        td 
+                              option value="2" 完了
+                        td
+                          - if todo.due_date.nil?
+                            input type="text" name="datetime" id="due_date_#{todo.id}" value="#{todo.due_date}"
+                          - else
+                            input type="text" name="datetime" id="due_date_#{todo.id}" value="#{todo.due_date.strftime("%Y-%m-%d %H:%M")}"
+                        td
                           input type="text" id="content_#{todo.id}" value="#{todo.content}"
 
     javascript:
@@ -156,3 +162,4 @@ html
           }
         );
       });
+      
