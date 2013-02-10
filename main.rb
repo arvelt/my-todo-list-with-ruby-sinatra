@@ -92,7 +92,7 @@ post '/add' do
   
   #全てのtodoを取得して返す
   @todos = Todo.all
-  slim :list
+  slim :_list
 end
 
 post '/delete' do
@@ -106,7 +106,7 @@ post '/delete' do
   
   #全てのtodoを取得して返す
   @todos = Todo.all
-  slim :list
+  slim :_list
 end
 
 post '/update' do
@@ -153,5 +153,5 @@ post '/update' do
   
   #全てのtodoを取得して返す
   @todos = Todo.all
-  slim :list
+  slim :_list
 end

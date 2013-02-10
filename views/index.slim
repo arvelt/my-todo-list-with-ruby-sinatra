@@ -94,13 +94,15 @@ html
   body
     div class="container"
       div class="row"
-        div class="span12"
-          - if @oauth.nil?
-            p
-              a href="/auth/google_oauth2"　Google でログイン
-          - else
-            p
-              a href="/logout"　ログアウト
+        div class="row"
+          div class="span6"
+          div class="span6"
+            - if @oauth.nil?
+              p
+                a href="/auth/google_oauth2"　Google でログイン
+            - else
+              p
+                a href="/logout"　ログアウト
 
       form id="form" action="" method="post"
         span class="label label-info" Todoの追加
@@ -126,44 +128,7 @@ html
         div class="row"
           div class="span12"        
             div id="taskslist"
-              - if @err != nil
-                p 
-                  span class="label label-warning" #{@err}
-              - if @todos.length != 0
-                span class="label label-info" Todo一覧
-                table id="tasks" class="table table-striped"
-                  - if @todos.length != 0
-                    thead 
-                      th 
-                      th 
-                      th 状況
-                      th 期限
-                      th 内容
-                
-                  tbody
-                    - for todo in @todos 
-                      tr
-                        td 
-                          input type="button" class="btn" value="更新" onClick="doUpdateTask(#{todo.id})"
-                        td 
-                          input type="button" class="btn" value="削除" onClick="doDeleteTask(#{todo.id})"
-                        td
-                          select id="status_#{todo.id}" name="status" 
-                            -  if  todo.status == 1
-                              option value="1" selected="selected"  未完了 
-                            -  else
-                              option value="1" 未完了 
-                            -  if  todo.status == 2
-                              option value="2" selected="selected"  完了 
-                            -  else
-                              option value="2" 完了
-                        td
-                          - if todo.due_date.nil?
-                            input type="text" name="datetime" id="due_date_#{todo.id}" value="#{todo.due_date}"
-                          - else
-                            input type="text" name="datetime" id="due_date_#{todo.id}" value="#{todo.due_date.strftime("%Y-%m-%d %H:%M")}"
-                        td
-                          input type="text" id="content_#{todo.id}" value="#{todo.content}"
+              == slim :_list
 
     javascript:
       $(function(){
