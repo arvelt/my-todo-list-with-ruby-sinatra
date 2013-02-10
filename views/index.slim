@@ -93,6 +93,15 @@ html
 
   body
     div class="container"
+      div class="row"
+        div class="span12"
+          - if @oauth.nil?
+            p
+              a href="/auth/google_oauth2"　Google でログイン
+          - else
+            p
+              a href="/logout"　ログアウト
+
       form id="form" action="" method="post"
         span class="label label-info" Todoの追加
 
@@ -117,6 +126,9 @@ html
         div class="row"
           div class="span12"        
             div id="taskslist"
+              - if @err != nil
+                p 
+                  span class="label label-warning" #{@err}
               - if @todos.length != 0
                 span class="label label-info" Todo一覧
                 table id="tasks" class="table table-striped"
