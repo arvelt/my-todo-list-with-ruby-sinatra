@@ -37,6 +37,7 @@ configure :development do
     "uid" => 4580841,
     "info" => {
       "name" => "Arvelt S",
+      "email" => "arvelt.s-aaaaaaaa@gmail.com",
     },
   }
 end
@@ -49,9 +50,11 @@ get "/auth/:provider/callback" do
   
   #raise request.env["omniauth.auth"]
   @oauth = request.env["omniauth.auth"]
+  session[:oauth] = @oauth
   session[:logined] = true
   session[:user_id] = @oauth['uid']
-  session[:name] = @oauth['info']['name']
+#  session[:name] = @oauth['info']['name']
+  session[:name] = @oauth['info']['email']
   @logined = session[:logined]
   p @logined
     
@@ -77,7 +80,7 @@ end
 
 get '/' do
   @root = @@root
-  
+    
   p session[:user_id]
   p session[:session_id]
   

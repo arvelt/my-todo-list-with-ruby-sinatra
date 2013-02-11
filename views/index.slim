@@ -95,15 +95,13 @@ html
     div class="container"
       div class="row"
         div class="row"
-          div class="span10"
-          div class="span2"
+          div class="span12 pull-right"
             - if @logined.nil?
-              div
-                a href="#{@root}auth/google_oauth2"　Google でログイン
+              a class="btn pull-right" href="#{@root}auth/google_oauth2"　Google でログイン
             - else
-              div
-                | #{@name}
-                a href="#{@root}logout"　ログアウト
+              div class="pull-right" 
+                span #{@name}　　
+                a class="btn" href="#{@root}logout"　ログアウト
 
       form id="form" action="" method="post"
         span class="label label-info" Todoの追加
