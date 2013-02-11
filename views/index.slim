@@ -1,20 +1,20 @@
 doctype html
 html
   head
-    link href="/css/bootstrap.min.css" rel="stylesheet"
-    script src="/js/bootstrap.min.js"
+    script src="#{@root}js/bootstrap.min.js"
     script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"
     script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"
-    script src="/js/jquery-ui-timepicker-addon.js"
-    script src="/js/jquery-ui-sliderAccess.js"
-    script src="/js/bootstrap-select.min.js"
-    link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.10.0.custom.min.css"
-    link rel="stylesheet" type="text/css" href="/css/jquery-ui-timepicker-addon.css"
-    link rel="stylesheet" type="text/css" href="/css/bootstrap-select.min.css"
+    script src="#{@root}js/jquery-ui-timepicker-addon.js"
+    script src="#{@root}js/jquery-ui-sliderAccess.js"
+    script src="#{@root}js/bootstrap-select.min.js"
+    link rel="stylesheet" type="text/css" href="#{@root}css/bootstrap.min.css" 
+    link rel="stylesheet" type="text/css" href="#{@root}css/jquery-ui-1.10.0.custom.min.css"
+    link rel="stylesheet" type="text/css" href="#{@root}css/jquery-ui-timepicker-addon.css"
+    link rel="stylesheet" type="text/css" href="#{@root}css/bootstrap-select.min.css"
     javascript:
       function doAddTask(){
     	  $.ajax({
-    	    url: '/add',
+    	    url: '#{@root}add',
     	    type: 'POST',
     	    data: {
        	        "send_content" : $('#send_content').val() ,
@@ -37,7 +37,7 @@ html
         var id_content = "content_"+key;
         var id_datetime = "due_date_"+key;
         $.ajax({
-          url: '/update',
+          url: '#{@root}update',
           type: 'POST',
           data: {
                 "key" : key ,
@@ -59,7 +59,7 @@ html
     javascript:
       function doDeleteTask(key){
       	$.ajax({
-      	    url: '/delete',
+      	    url: '#{@root}delete',
       	    type: 'POST',
       	    data: {
          	        "key" : key 
@@ -95,14 +95,15 @@ html
     div class="container"
       div class="row"
         div class="row"
-          div class="span6"
-          div class="span6"
-            - if @oauth.nil?
-              p
-                a href="/auth/google_oauth2"　Google でログイン
+          div class="span10"
+          div class="span2"
+            - if @logined.nil?
+              div
+                a href="#{@root}auth/google_oauth2"　Google でログイン
             - else
-              p
-                a href="/logout"　ログアウト
+              div
+                | #{@name}
+                a href="#{@root}logout"　ログアウト
 
       form id="form" action="" method="post"
         span class="label label-info" Todoの追加
