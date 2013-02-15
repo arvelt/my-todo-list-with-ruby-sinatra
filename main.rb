@@ -9,7 +9,6 @@ require 'slim'
 Slim::Engine.default_options[:pretty] = true  #出力htmlを整形する設定  true=>する,false=>しない
 
 #環境設定
-#set :environment, :production
 set :environment, :development
 
 #静的ファイルの場所を固定持ちさせる
