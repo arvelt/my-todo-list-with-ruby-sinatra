@@ -1,24 +1,27 @@
+# coding: utf-8
 require './main'
-require 'rspec'
-require 'rack/test'
+require "./models/todo"
+require 'spec_helper'
 
-set :environment, :devlopment
+describe 'Todolistのテスト' do
 
-describe 'The HelloWorld App' do
-  include Rack::Test::Methods
+  context 'Todoが空の時' do
 
-  def app
-    Sinatra::Application
+    it '問題ないこと' do
+      get '/'
+      last_response.should be_ok
+    end
+
+    it 'Todoを追加できること' do
+      @message = "テストメッセージ"
+      get '/'
+      last_response.should be_ok
+
+      post '/add' , :send_content=>@message
+      last_response.should be_ok
+
+      get '/'
+      last_response.body.should include(@message)
+    end
   end
-
-  it "says hello" do
-    get '/'
-    last_response.should be_ok
-#    last_response.body.should eq 'Hello World'
-  end
-
-#  it "says hello to a person" do
-#    get '/', :name => 'Simon'
-#    last_response.body.should include('Simon')
-#  end
 end
