@@ -194,10 +194,7 @@ class Main < Sinatra::Base
   post '/update' do
     @root = @@root
   
-    p params[:key]
-    p params[:status]
-    p params[:content]
-    p params[:due_date]
+    p "/update params=>#{params}"
   
     #パラメタ取得
     key =  params[:key]
