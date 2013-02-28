@@ -33,7 +33,7 @@ class Main < Sinatra::Base
   end
   
   # 開発環境の場合はテストモックを使用
-  configure :development do
+  configure :development , :test do
     OmniAuth.config.test_mode = true
     OmniAuth.config.mock_auth[:google_oauth2] = {
       "provider" => "google",
@@ -84,32 +84,20 @@ class Main < Sinatra::Base
   get '/' do
     @root = @@root
       
-    p session[:user_id]
-    p session[:session_id]
+    puts "path_info:#{request.path_info}"
     
     #セッション値を取得
     @logined = session[:logined]
     @name = session[:name]
-    user_id = session[:user_id]
-    p @logined
   
     #------------------------------------------
     #　Session[user_id]に有効なIDする設定する
     #   →セッションIDか、auth認証したIDのどちらかが入っている
     #------------------------------------------
-    user_id = ""
-    @name = session[:name] unless session[:name]
-    if session[:user_id].nil? 
-      user_id = session[:session_id]
-      session[:user_id] =  session[:session_id]
-    else
-      user_id = session[:user_id] 
-      @name = session[:name]
-    end  
-    p "user_id:#{user_id}"
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
     
     #Commentsテーブルから結果セットを取得してビューへ渡す
-    p request.path_info
     @todos = Todo.where(:user_id=>user_id).all
     puts "show todos:#{@todos}"
     slim :index
@@ -118,32 +106,18 @@ class Main < Sinatra::Base
   post '/add' do
     @root = @@root
     
-    puts "session id:#{session[:session_id]}"
-    puts "user_id id:#{session[:user_id]}"
+    puts "path_info:#{request.path_info}"  
+    puts "params:#{params}"
   
-    p params[:send_content]
-    p params[:send_duedatetime]
-  
-    @logined = session[:logined]
-    p @logine
-      
-    user_id = session[:user_id]
-    @name = session[:name] unless session[:name]
-    if session[:user_id].nil? 
-      user_id = session[:session_id]
-      session[:user_id] =  session[:session_id]
-    else
-      user_id = session[:user_id] 
-      @name = session[:name]
-    end  
-    @name = session[:name] unless session[:name]
+    #ユーザーIDを取得
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
     
     due_date = params[:send_duedatetime]
   
     #入力をチェック  
     @err = check_format_duedate( due_date )
     p "err:#{@err}"
-    p "user_id:#{user_id}"
           
     if @err.nil?
       #取得したパラメーターを元にtodoモデルを作成
@@ -164,25 +138,17 @@ class Main < Sinatra::Base
   post '/delete' do
     @root = @@root
    
+    puts "path_info:#{request.path_info}"  
+    puts "params:#{params}"
+
     key = params[:key]
     user_id = session[:user_id]
-    p key
-    p user_id
       
-    user_id = session[:user_id]
-    @name = session[:name] unless session[:name]
-    if session[:user_id].nil? 
-      user_id = session[:session_id]
-      session[:user_id] =  session[:session_id]
-    else
-      user_id = session[:user_id] 
-      @name = session[:name]
-    end  
-    @name = session[:name] unless session[:name]
-    p user_id
-  
+    #ユーザーIDを取得
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
     
-    #取得したパラメーターを元にtodoモデルを作成
+    #取得したパラメーターを元にtodoモデルを削除
     @todo = Todo[:id=>key]
     @todo.destroy
     
@@ -194,7 +160,8 @@ class Main < Sinatra::Base
   post '/update' do
     @root = @@root
   
-    p "/update params=>#{params}"
+    puts "path_info:#{request.path_info}"  
+    puts "params:#{params}"
   
     #パラメタ取得
     key =  params[:key]
@@ -203,21 +170,13 @@ class Main < Sinatra::Base
     due_date = params[:due_date]
     user_id = session[:user_id]
   
-    user_id = session[:user_id]
-    @name = session[:name] unless session[:name]
-    if session[:user_id].nil? 
-      user_id = session[:session_id]
-      session[:user_id] =  session[:session_id]
-    else
-      user_id = session[:user_id] 
-      @name = session[:name]
-    end  
-    @name = session[:name] unless session[:name]
+    #ユーザーIDを取得
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
   
     #入力をチェック  
     @err = check_format_duedate( due_date )
-      
-    p @err
+    p "err:#{@err}"
     
     if @err.nil?
       #主キーでモデルを取得し、更新して保存
@@ -229,13 +188,14 @@ class Main < Sinatra::Base
       )
       @todo.save
     end
-      
     
     #自分のtodoを取得して返す
     @todos = Todo.where(:user_id=>user_id).all
     slim :_list
   end
   
+
+  # 日付のフォーマットチェック
   def check_format_duedate( due_date )
   
     #due_dateがtimeなので、空文字いれてしまうとストリングフォーマットしようとして落ちる
@@ -255,6 +215,18 @@ class Main < Sinatra::Base
     end
     
     return nil
+  end
+
+  #　session[user_id]、session[session_id]のうち、
+  #　有効なものを返却する
+  def get_userid_from_session ( session )
+
+    if session[:user_id].nil? 
+      session[:user_id] =  session[:session_id]
+      return session[:session_id]
+    else
+      return session[:user_id] 
+    end  
   end
 
   # start the server if ruby file executed directly

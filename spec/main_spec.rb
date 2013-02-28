@@ -69,6 +69,8 @@ describe 'Todolistのテスト' do
 
       post '/update' , :key=>todo[:id] ,:content=>after_message , :due_date=>due_date
       last_response.body.should include(err_msg)
+
+      Todo[todo.id].delete unless Todo[todo.id]
     end
 
     it "Todoを削除できること" do
@@ -83,6 +85,8 @@ describe 'Todolistのテスト' do
 
       post '/delete' 
       last_response.body.should_not include(todo[:id].to_s)
+        
+      Todo[todo.id].delete unless Todo[todo.id]
     end
   end
   
