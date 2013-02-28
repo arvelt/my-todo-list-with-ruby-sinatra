@@ -7,6 +7,11 @@ describe 'Todolistのテスト' do
 
   context 'ログインしていない時' do
 
+    it 'ユーザーIDがセッションIDであること' do
+      get '/'
+      last_request.env['rack.session'][:user_id].should == session[:session_id]
+    end
+
     it 'トップページにアクセスし、問題ないこと' do
       get '/'
       last_response.should be_ok
@@ -91,7 +96,13 @@ describe 'Todolistのテスト' do
   end
   
   context 'ログインしている時' do
-    #TODO
+    
+    it 'ユーザーIDが認証されたIDであること' do
+      get '/'
+      get '/auth/google_oauth2'
+      follow_redirect!
+      session[:user_id].should == last_request.env["omniauth.auth"]['uid']
+    end
   end
 
 end

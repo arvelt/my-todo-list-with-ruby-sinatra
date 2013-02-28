@@ -5,22 +5,27 @@ require "omniauth"
 require "omniauth-google-oauth2"
 require "./models/todo"
 require 'slim'
+require "sinatra/reloader"
 
 class Main < Sinatra::Base
 
-  require "sinatra/reloader" if development?
   
   Slim::Engine.default_options[:pretty] = true  #出力htmlを整形する設定  true=>する,false=>しない
   
   #環境設定
   set :environment, :development
   
-  #静的ファイルの場所を固定持ちさせる
+  #urlrootの場所を固定持ちさせる
   configure :development do
+    @@env = :dev
     @@root = ''
   end
   configure :production do
+    @@env = :pro
     @@root = '/todolist/'
+  end
+  configure :production do
+    @@env = :test
   end
   
   # Sinatra のセッションを有効にする-
@@ -28,7 +33,6 @@ class Main < Sinatra::Base
     
   # OmniAuth の設定
   use OmniAuth::Builder do
-    # Twitter の OAuth を使う
     provider :google_oauth2, ENV['GOOGLE_ID'], ENV['GOOGLE_SECRET']
   end
   
@@ -52,32 +56,34 @@ class Main < Sinatra::Base
     # uidとnameをセッションに入れて使う
     
     #raise request.env["omniauth.auth"]
+    p request.env["omniauth.auth"]
     @oauth = request.env["omniauth.auth"]
     session[:oauth] = @oauth
-    session[:logined] = true
     session[:user_id] = @oauth['uid']
-  #  session[:name] = @oauth['info']['name']
     session[:name] = @oauth['info']['email']
-    @logined = session[:logined]
-    p @logined
+    session[:logined] = true
+    @logined = true
+    p "logined:#{@logined}"
+    p "env:#{@@env}"
       
-  #  @todos = Todo.all
-  #  slim :index
-    configure :development do
+    #この位置でundefined method `configure'といわれるので、自前で振り分けることにする
+    if @@env == :dev
       redirect '/'
-    end
-    configure :production do
-      redirect @@root
+    elsif @@env == :pro
+      redirect @@root 
+    elsif @@env == :test
+      redirect '/'
     end
   end
   
   get '/logout' do
     session.clear
-    configure :development do
+    if @@env == :dev
       redirect '/'
-    end
-    configure :production do
-      redirect @@root
+    elsif @@env == :pro
+      redirect @@root 
+    elsif @@env == :test
+      redirect '/'
     end
   end
   
