@@ -200,6 +200,66 @@ class Main < Sinatra::Base
     slim :_list
   end
   
+  post '/api/list' do
+    @root = @@root
+      
+    puts "path_info:#{request.path_info}"
+
+    #パラメタを取得
+    user_id = params[:user_id]
+    puts "user_id:#{user_id}"
+
+    #セッション値を取得
+    @logined = session[:logined]
+    @name = session[:name]
+      
+    #Commentsテーブルから結果セットを取得してビューへ渡す
+    #return Todo.filter(:user_id=>user_id).all.to_json
+    json = Todo.filter(:user_id=>user_id).all.to_json 
+    todo_data = []
+    JSON.parse(json).each do |data|
+      Date.strptime(data[:due_date].to_s, "%Y-%m-%d %H:%M:%S %z")
+#      due_Date=p data[:due_date].strftime("%Y-%m-%d %H:%M")
+      p data
+
+      todo_data << {
+
+        # :id=>data[:id] ,
+        # :user_id=>data[:user_id] ,
+        # :content=>data[:content] ,
+        # :due_date=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
+        # :status=>data[:status] 
+        "id"=>data[:id] ,
+        "user_id"=>data[:user_id] ,
+        "content"=>data[:content] ,
+        "due_date"=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
+        "status"=>data[:status] 
+
+      }
+#      p data[:due_date].to_s
+#      ss = Date.strptime(data[:due_date].to_s, "%Y-%m-%d %H:%M:%S %z")
+#      p ss
+#      p ss.strftime( "%Y-%m-%d %H:%M")
+#      data[:due_date] = {:due_date=>ss}
+#      data[:due_date]= data[:due_date].strftime( "%Y-%m-%d %H:%M")
+#      p Time.new(data[:due_date])
+#      p Date.strptime(data[:due_date], "%Y-%m-%d %H:%M:%S %z")
+#      ftime = Date.strptime( data[:due_date] , "%Y-%m-%d %H:%M")
+ #     ftime = Date.strptime( data[:due_date] , "%Y-%m-%d %H:%M")
+#      data[:due_date] = ftime
+##      data[:due_date] = Date.strptime( data[:due_date] , "%Y-%m-%d %H:%M")
+      #return JSON.load(todo_data) 
+    end
+      p todo_data.to_json
+#      return todo_data
+#        p JSON.jenerate(todo_data) 
+       return todo_data.to_json
+#    json.each do |data|
+#      p data
+#    end
+#    return json
+  end
+
 
   # 日付のフォーマットチェック
   def check_format_duedate( due_date )
