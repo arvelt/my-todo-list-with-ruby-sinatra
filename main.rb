@@ -1,4 +1,4 @@
-# coding: utf-8
+# encoding: utf-8
 require 'sinatra/base'
 require 'sequel'
 require "omniauth"
@@ -9,12 +9,11 @@ require "sinatra/reloader"
 
 class Main < Sinatra::Base
 
-  
   Slim::Engine.default_options[:pretty] = true  #出力htmlを整形する設定  true=>する,false=>しない
-  
+
   #環境設定
   set :environment, :development
-  
+
   #urlrootの場所を固定持ちさせる
   configure :development do
     @@env = :dev
@@ -27,15 +26,15 @@ class Main < Sinatra::Base
   configure :production do
     @@env = :test
   end
-  
+
   # Sinatra のセッションを有効にする-
   enable :sessions
-    
+
   # OmniAuth の設定
   use OmniAuth::Builder do
     provider :google_oauth2, ENV['GOOGLE_ID'], ENV['GOOGLE_SECRET']
   end
-  
+
   # 開発環境の場合はテストモックを使用
   configure :development , :test do
     OmniAuth.config.test_mode = true
@@ -43,18 +42,18 @@ class Main < Sinatra::Base
       "provider" => "google",
       "uid" => 4580841,
       "info" => {
-        "name" => "Arvelt S",
-        "email" => "arvelt.s-aaaaaaaa@gmail.com",
+      "name" => "Arvelt S",
+      "email" => "arvelt.s-aaaaaaaa@gmail.com",
       },
     }
   end
-  
+
   get "/auth/:provider/callback" do
     @root = @@root
-  
+
     # 認証情報は request.env に格納されている
     # uidとnameをセッションに入れて使う
-    
+
     #raise request.env["omniauth.auth"]
     p request.env["omniauth.auth"]
     @oauth = request.env["omniauth.auth"]
@@ -65,66 +64,66 @@ class Main < Sinatra::Base
     @logined = true
     p "logined:#{@logined}"
     p "env:#{@@env}"
-      
+
     #この位置でundefined method `configure'といわれるので、自前で振り分けることにする
     if @@env == :dev
       redirect '/'
     elsif @@env == :pro
-      redirect @@root 
+      redirect @@root
     elsif @@env == :test
       redirect '/'
     end
   end
-  
+
   get '/logout' do
     session.clear
     if @@env == :dev
       redirect '/'
     elsif @@env == :pro
-      redirect @@root 
+      redirect @@root
     elsif @@env == :test
       redirect '/'
     end
   end
-  
+
   get '/' do
     @root = @@root
-      
+
     puts "path_info:#{request.path_info}"
-    
+
     #セッション値を取得
     @logined = session[:logined]
     @name = session[:name]
-  
+
     #------------------------------------------
     #　Session[user_id]に有効なIDする設定する
     #   →セッションIDか、auth認証したIDのどちらかが入っている
     #------------------------------------------
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
-    
+
     #Commentsテーブルから結果セットを取得してビューへ渡す
     @todos = Todo.where(:user_id=>user_id).all
     puts "show todos:#{@todos}"
     slim :index
   end
-  
+
   post '/add' do
     @root = @@root
-    
-    puts "path_info:#{request.path_info}"  
+
+    puts "path_info:#{request.path_info}"
     puts "params:#{params}"
-  
+
     #ユーザーIDを取得
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
-    
+
     due_date = params[:send_duedatetime]
-  
-    #入力をチェック  
+
+    #入力をチェック
     @err = check_format_duedate( due_date )
     p "err:#{@err}"
-          
+
     if @err.nil?
       #取得したパラメーターを元にtodoモデルを作成
       @todo = Todo.new()
@@ -134,75 +133,95 @@ class Main < Sinatra::Base
       @todo.due_date = due_date
       @todo.save
     end
-    
+
     #自分のtodoを取得して返す
     @todos = Todo.where(:user_id=>user_id).all
     puts "show todos:#{@todos}"
     slim :_list
   end
-  
+
   post '/delete' do
     @root = @@root
-   
-    puts "path_info:#{request.path_info}"  
+
+    puts "path_info:#{request.path_info}"
     puts "params:#{params}"
 
     key = params[:key]
     user_id = session[:user_id]
-      
+
     #ユーザーIDを取得
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
-    
+
     #取得したパラメーターを元にtodoモデルを削除
     @todo = Todo[:id=>key]
     @todo.destroy
-    
+
     #自分のtodoを取得して返す
     @todos = Todo.where(:user_id=>user_id).all
     slim :_list
   end
-  
+
   post '/update' do
     @root = @@root
-  
-    puts "path_info:#{request.path_info}"  
+
+    puts "path_info:#{request.path_info}"
     puts "params:#{params}"
-  
+
     #パラメタ取得
     key =  params[:key]
     status =  params[:status]
     content = params[:content]
     due_date = params[:due_date]
     user_id = session[:user_id]
-  
+
     #ユーザーIDを取得
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
-  
-    #入力をチェック  
+
+    #入力をチェック
     @err = check_format_duedate( due_date )
     p "err:#{@err}"
-    
+
     if @err.nil?
       #主キーでモデルを取得し、更新して保存
       @todo = Todo[:id=>key]
       @todo.update(
-        :status => status,
-        :content => content,
-        :due_date => due_date
+      :status => status,
+      :content => content,
+      :due_date => due_date
       )
       @todo.save
     end
-    
+
     #自分のtodoを取得して返す
     @todos = Todo.where(:user_id=>user_id).all
     slim :_list
   end
-  
+
+  #テスト用メソッド
+  get '/api/list' do
+    #json形式で取得
+    json = Todo.filter(:user_id=>session[:session_id]).all.to_json
+
+    #日付の形式を整えるため、パースしてから詰め替える
+    todo_data = []
+    JSON.parse(json).each do |data|
+      todo_data << {
+        "id"=>data[:id] ,
+        "user_id"=>data[:user_id] ,
+        "content"=>data[:content] ,
+        "due_date"=>  data[:due_date].nil? ? "" : "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}" ,
+        #        "due_date"=>  data[:due_date],
+        "status"=>data[:status]
+      }
+    end
+    return todo_data.to_json
+  end
+
   post '/api/list' do
     @root = @@root
-      
+
     puts "path_info:#{request.path_info}"
 
     #パラメタを取得
@@ -212,74 +231,172 @@ class Main < Sinatra::Base
     #セッション値を取得
     @logined = session[:logined]
     @name = session[:name]
-      
-    #Commentsテーブルから結果セットを取得してビューへ渡す
-    #return Todo.filter(:user_id=>user_id).all.to_json
-    json = Todo.filter(:user_id=>user_id).all.to_json 
+
+    #json形式で取得
+    json = Todo.filter(:user_id=>user_id).all.to_json
+
+    #日付の形式を整えるため、パースしてから詰め替える
     todo_data = []
     JSON.parse(json).each do |data|
-      Date.strptime(data[:due_date].to_s, "%Y-%m-%d %H:%M:%S %z")
-#      due_Date=p data[:due_date].strftime("%Y-%m-%d %H:%M")
-      p data
-
       todo_data << {
-
-        # :id=>data[:id] ,
-        # :user_id=>data[:user_id] ,
-        # :content=>data[:content] ,
-        # :due_date=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
-        # :status=>data[:status] 
         "id"=>data[:id] ,
         "user_id"=>data[:user_id] ,
         "content"=>data[:content] ,
         "due_date"=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
-        "status"=>data[:status] 
-
+        "status"=>data[:status]
       }
-#      p data[:due_date].to_s
-#      ss = Date.strptime(data[:due_date].to_s, "%Y-%m-%d %H:%M:%S %z")
-#      p ss
-#      p ss.strftime( "%Y-%m-%d %H:%M")
-#      data[:due_date] = {:due_date=>ss}
-#      data[:due_date]= data[:due_date].strftime( "%Y-%m-%d %H:%M")
-#      p Time.new(data[:due_date])
-#      p Date.strptime(data[:due_date], "%Y-%m-%d %H:%M:%S %z")
-#      ftime = Date.strptime( data[:due_date] , "%Y-%m-%d %H:%M")
- #     ftime = Date.strptime( data[:due_date] , "%Y-%m-%d %H:%M")
-#      data[:due_date] = ftime
-##      data[:due_date] = Date.strptime( data[:due_date] , "%Y-%m-%d %H:%M")
-      #return JSON.load(todo_data) 
     end
-      p todo_data.to_json
-#      return todo_data
-#        p JSON.jenerate(todo_data) 
-       return todo_data.to_json
-#    json.each do |data|
-#      p data
-#    end
-#    return json
+    return todo_data.to_json
   end
 
+  post '/api/add' do
+
+    puts "path_info:#{request.path_info}"
+
+    #ユーザーIDを取得
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
+
+    due_date = params[:send_duedatetime]
+
+    #入力をチェック
+    @err = check_format_duedate( due_date )
+    p "err:#{@err}"
+
+    if @err.nil?
+      #取得したパラメーターを元にtodoモデルを作成
+      @todo = Todo.new()
+      @todo.user_id = user_id
+      @todo.status = "1"
+      @todo.content = params[:send_content].to_s
+      @todo.due_date = due_date
+      @todo.save
+    else 
+      json = [{:err => @err}]
+      return json.to_json
+    end
+
+    #json形式で取得
+    json = Todo.filter(:user_id=>user_id).all.to_json
+
+    #日付の形式を整えるため、パースしてから詰め替える
+    todo_data = []
+    JSON.parse(json).each do |data|
+      todo_data << {
+        "id"=>data[:id] ,
+        "user_id"=>data[:user_id] ,
+        "content"=>data[:content] ,
+        "due_date"=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
+        "status"=>data[:status]
+      }
+    end
+    return todo_data.to_json
+  end
+
+  post '/api/update' do
+    puts "path_info:#{request.path_info}"
+    puts "params:#{params}"
+
+    #パラメタ取得
+    key =  params[:key]
+    status =  params[:status].nil?
+    content = params[:content]
+    due_date = params[:due_date]
+    user_id = session[:user_id]
+
+    #ユーザーIDを取得
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
+
+    #入力をチェック
+    @err = check_format_duedate( due_date )
+    p "err:#{@err}"
+
+    if @err.nil?
+      #主キーでモデルを取得し、更新して保存
+      @todo = Todo[:id=>key]
+      @todo.update(
+      :status => status,
+      :content => content,
+      :due_date => due_date
+      )
+      @todo.save
+    else 
+      json = [{:err => @err}]
+      return json.to_json
+    end
+
+    #json形式で取得
+    json = Todo.filter(:user_id=>user_id).all.to_json
+
+    #日付の形式を整えるため、パースしてから詰め替える
+    todo_data = []
+    JSON.parse(json).each do |data|
+      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
+      todo_data << {
+        "id"=>data[:id] ,
+        "user_id"=>data[:user_id] ,
+        "content"=>data[:content] ,
+        "due_date"=>  due_date ,
+        "status"=>data[:status]
+      }
+    end
+    return todo_data.to_json
+  end
+
+  post '/api/delete' do
+
+    puts "path_info:#{request.path_info}"
+    puts "params:#{params}"
+
+    key = params[:key]
+    user_id = session[:user_id]
+
+    #ユーザーIDを取得
+    user_id = get_userid_from_session( session )
+    puts "user_id:#{user_id}"
+
+    #取得したパラメーターを元にtodoモデルを削除
+    @todo = Todo[:id=>key]
+    @todo.destroy
+
+    #json形式で取得
+    json = Todo.filter(:user_id=>user_id).all.to_json
+
+    #日付の形式を整えるため、パースしてから詰め替える
+    todo_data = []
+    JSON.parse(json).each do |data|
+      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
+      todo_data << {
+        "id"=>data[:id] ,
+        "user_id"=>data[:user_id] ,
+        "content"=>data[:content] ,
+        "due_date"=>  due_date ,
+        "status"=>data[:status]
+      }
+    end
+    return todo_data.to_json
+  end
 
   # 日付のフォーマットチェック
   def check_format_duedate( due_date )
-  
+
     #due_dateがtimeなので、空文字いれてしまうとストリングフォーマットしようとして落ちる
-  
+
     return nil if due_date.nil?
-    
+
     if due_date == "" then
       due_date = nil
     else
-      
+
       #入力があればフォーマットチェック
       begin
         Date.strptime(due_date, "%Y-%m-%d %H:%M")
-      rescue 
+      rescue
         return "その日時を指定することはできません"
       end
     end
-    
+
     return nil
   end
 
@@ -287,15 +404,14 @@ class Main < Sinatra::Base
   #　有効なものを返却する
   def get_userid_from_session ( session )
 
-    if session[:user_id].nil? 
+    if session[:user_id].nil?
       session[:user_id] =  session[:session_id]
       return session[:session_id]
     else
-      return session[:user_id] 
-    end  
+      return session[:user_id]
+    end
   end
 
   # start the server if ruby file executed directly
   run! if app_file == $0
 end
-  
