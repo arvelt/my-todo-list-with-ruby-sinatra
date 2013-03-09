@@ -1,6 +1,6 @@
-- if @err != nil
-  p 
-    span class="label label-warning" #{@err}
+- unless @err.nil? 
+  - for err in @err
+    span class="label label-warning" "#{err}"
 
 - if @todos.length != 0
   span class="label label-info" Todo一覧

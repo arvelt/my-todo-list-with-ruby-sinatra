@@ -9,6 +9,9 @@ require "sinatra/reloader"
 
 class Main < Sinatra::Base
 
+  @@msg_userid_required = "userid_is_required"
+  @@msg_datetime_format_err = "その日時を指定することはできません"
+
   Slim::Engine.default_options[:pretty] = true  #出力htmlを整形する設定  true=>する,false=>しない
 
   #環境設定
@@ -99,6 +102,7 @@ class Main < Sinatra::Base
     #　Session[user_id]に有効なIDする設定する
     #   →セッションIDか、auth認証したIDのどちらかが入っている
     #------------------------------------------
+    @err = []
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
 
@@ -114,22 +118,26 @@ class Main < Sinatra::Base
     puts "path_info:#{request.path_info}"
     puts "params:#{params}"
 
+    #パラメタを取得
+    key =  params[:key]
+    content = params[:send_content]
+    due_date = params[:send_duedatetime]
+
     #ユーザーIDを取得
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
 
-    due_date = params[:send_duedatetime]
-
     #入力をチェック
-    @err = check_format_duedate( due_date )
+    @err = []
+    @err << @@msg_datetime_format_err if is_err_format_duedate(due_date)
     p "err:#{@err}"
 
-    if @err.nil?
-      #取得したパラメーターを元にtodoモデルを作成
+    #エラーがなければ取得したパラメーターを元にtodoモデルを作成
+    if @err.size == 0
       @todo = Todo.new()
       @todo.user_id = user_id
       @todo.status = "1"
-      @todo.content = params[:send_content].to_s
+      @todo.content = content.to_s
       @todo.due_date = due_date
       @todo.save
     end
@@ -146,8 +154,8 @@ class Main < Sinatra::Base
     puts "path_info:#{request.path_info}"
     puts "params:#{params}"
 
+    #パラメタ取得
     key = params[:key]
-    user_id = session[:user_id]
 
     #ユーザーIDを取得
     user_id = get_userid_from_session( session )
@@ -173,17 +181,17 @@ class Main < Sinatra::Base
     status =  params[:status]
     content = params[:content]
     due_date = params[:due_date]
-    user_id = session[:user_id]
 
     #ユーザーIDを取得
     user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
 
     #入力をチェック
-    @err = check_format_duedate( due_date )
+    @err = []
+    @err << @@msg_datetime_format_err if is_err_format_duedate(due_date)
     p "err:#{@err}"
 
-    if @err.nil?
+    if @err.size == 0
       #主キーでモデルを取得し、更新して保存
       @todo = Todo[:id=>key]
       @todo.update(
@@ -199,34 +207,26 @@ class Main < Sinatra::Base
     slim :_list
   end
 
-  #テスト用メソッド
   get '/api/list' do
-    #json形式で取得
-    json = Todo.filter(:user_id=>session[:session_id]).all.to_json
-
-    #日付の形式を整えるため、パースしてから詰め替える
-    todo_data = []
-    JSON.parse(json).each do |data|
-      todo_data << {
-        "id"=>data[:id] ,
-        "user_id"=>data[:user_id] ,
-        "content"=>data[:content] ,
-        "due_date"=>  data[:due_date].nil? ? "" : "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}" ,
-        #        "due_date"=>  data[:due_date],
-        "status"=>data[:status]
-      }
-    end
-    return todo_data.to_json
-  end
-
-  post '/api/list' do
-    @root = @@root
-
     puts "path_info:#{request.path_info}"
 
     #パラメタを取得
     user_id = params[:user_id]
     puts "user_id:#{user_id}"
+
+    #入力をチェック
+    @err = []
+    @err << @@msg_userid_required if is_nil_or_brank(user_id) 
+    p "err:#{@err}"
+
+    #エラーがあればメッセージを設定し返却
+    if @err.size != 0
+      json =[]
+      @err.each do | msg |
+        json << {:err => msg}
+      end
+      return json.to_json
+    end
 
     #セッション値を取得
     @logined = session[:logined]
@@ -254,17 +254,19 @@ class Main < Sinatra::Base
     puts "path_info:#{request.path_info}"
 
     #ユーザーIDを取得
-    user_id = get_userid_from_session( session )
+    user_id = params[:user_id]
     puts "user_id:#{user_id}"
 
     due_date = params[:send_duedatetime]
 
     #入力をチェック
-    @err = check_format_duedate( due_date )
+    @err = []
+    @err << @@msg_userid_required if is_nil_or_brank(user_id)
+    @err << @@msg_datetime_format_err if is_err_format_duedate(due_date)
     p "err:#{@err}"
 
-    if @err.nil?
-      #取得したパラメーターを元にtodoモデルを作成
+    #エラーがなければ取得したパラメーターを元にtodoモデルを作成
+    if @err.size == 0
       @todo = Todo.new()
       @todo.user_id = user_id
       @todo.status = "1"
@@ -272,7 +274,10 @@ class Main < Sinatra::Base
       @todo.due_date = due_date
       @todo.save
     else 
-      json = [{:err => @err}]
+      json =[]
+      @err.each do | msg |
+        json << {:err => msg}
+      end
       return json.to_json
     end
 
@@ -282,11 +287,12 @@ class Main < Sinatra::Base
     #日付の形式を整えるため、パースしてから詰め替える
     todo_data = []
     JSON.parse(json).each do |data|
+      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
       todo_data << {
         "id"=>data[:id] ,
         "user_id"=>data[:user_id] ,
         "content"=>data[:content] ,
-        "due_date"=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
+        "due_date"=>  due_date,
         "status"=>data[:status]
       }
     end
@@ -302,18 +308,18 @@ class Main < Sinatra::Base
     status =  params[:status].nil?
     content = params[:content]
     due_date = params[:due_date]
-    user_id = session[:user_id]
+    user_id = params[:user_id]
 
-    #ユーザーIDを取得
-    user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
 
     #入力をチェック
-    @err = check_format_duedate( due_date )
+    @err = []
+    @err << @@msg_userid_required if is_nil_or_brank(user_id)
+    @err << @@msg_datetime_format_err if is_err_format_duedate(due_date)
     p "err:#{@err}"
 
-    if @err.nil?
-      #主キーでモデルを取得し、更新して保存
+    #エラーがなければ主キーでモデルを取得し、更新して保存
+    if @err.size == 0
       @todo = Todo[:id=>key]
       @todo.update(
       :status => status,
@@ -322,7 +328,10 @@ class Main < Sinatra::Base
       )
       @todo.save
     else 
-      json = [{:err => @err}]
+      json =[]
+      @err.each do | msg |
+        json << {:err => msg}
+      end
       return json.to_json
     end
 
@@ -349,11 +358,10 @@ class Main < Sinatra::Base
     puts "path_info:#{request.path_info}"
     puts "params:#{params}"
 
+    #パラメタを取得
     key = params[:key]
-    user_id = session[:user_id]
+    user_id = params[:user_id]
 
-    #ユーザーIDを取得
-    user_id = get_userid_from_session( session )
     puts "user_id:#{user_id}"
 
     #取得したパラメーターを元にtodoモデルを削除
@@ -378,12 +386,22 @@ class Main < Sinatra::Base
     return todo_data.to_json
   end
 
+  # useridがnilでないことをチェック
+  def is_nil_or_brank( user_id )
+    p "check :#{user_id}"
+    if user_id == "" or nil 
+      return true
+    else
+      return false
+    end
+  end
+
   # 日付のフォーマットチェック
-  def check_format_duedate( due_date )
+  def is_err_format_duedate( due_date )
 
     #due_dateがtimeなので、空文字いれてしまうとストリングフォーマットしようとして落ちる
 
-    return nil if due_date.nil?
+    return false if due_date.nil?
 
     if due_date == "" then
       due_date = nil
@@ -393,11 +411,11 @@ class Main < Sinatra::Base
       begin
         Date.strptime(due_date, "%Y-%m-%d %H:%M")
       rescue
-        return "その日時を指定することはできません"
+        return true
       end
     end
 
-    return nil
+    return false
   end
 
   #　session[user_id]、session[session_id]のうち、
