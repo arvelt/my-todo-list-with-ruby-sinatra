@@ -235,18 +235,8 @@ class Main < Sinatra::Base
     #json形式で取得
     json = Todo.filter(:user_id=>user_id).all.to_json
 
-    #日付の形式を整えるため、パースしてから詰め替える
-    todo_data = []
-    JSON.parse(json).each do |data|
-      todo_data << {
-        "id"=>data[:id] ,
-        "user_id"=>data[:user_id] ,
-        "content"=>data[:content] ,
-        "due_date"=>  "#{data[:due_date].strftime("%Y-%m-%d %H:%M")}",
-        "status"=>data[:status]
-      }
-    end
-    return todo_data.to_json
+    #日付の形式を整えjson形式で返却
+    return get_todolist_json( json )
   end
 
   post '/api/add' do
@@ -284,19 +274,8 @@ class Main < Sinatra::Base
     #json形式で取得
     json = Todo.filter(:user_id=>user_id).all.to_json
 
-    #日付の形式を整えるため、パースしてから詰め替える
-    todo_data = []
-    JSON.parse(json).each do |data|
-      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
-      todo_data << {
-        "id"=>data[:id] ,
-        "user_id"=>data[:user_id] ,
-        "content"=>data[:content] ,
-        "due_date"=>  due_date,
-        "status"=>data[:status]
-      }
-    end
-    return todo_data.to_json
+    #日付の形式を整えjson形式で返却
+    return get_todolist_json( json )
   end
 
   post '/api/update' do
@@ -338,19 +317,8 @@ class Main < Sinatra::Base
     #json形式で取得
     json = Todo.filter(:user_id=>user_id).all.to_json
 
-    #日付の形式を整えるため、パースしてから詰め替える
-    todo_data = []
-    JSON.parse(json).each do |data|
-      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
-      todo_data << {
-        "id"=>data[:id] ,
-        "user_id"=>data[:user_id] ,
-        "content"=>data[:content] ,
-        "due_date"=>  due_date ,
-        "status"=>data[:status]
-      }
-    end
-    return todo_data.to_json
+    #日付の形式を整えjson形式で返却
+    return get_todolist_json( json )
   end
 
   post '/api/delete' do
@@ -371,19 +339,8 @@ class Main < Sinatra::Base
     #json形式で取得
     json = Todo.filter(:user_id=>user_id).all.to_json
 
-    #日付の形式を整えるため、パースしてから詰め替える
-    todo_data = []
-    JSON.parse(json).each do |data|
-      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
-      todo_data << {
-        "id"=>data[:id] ,
-        "user_id"=>data[:user_id] ,
-        "content"=>data[:content] ,
-        "due_date"=>  due_date ,
-        "status"=>data[:status]
-      }
-    end
-    return todo_data.to_json
+    #日付の形式を整えjson形式で返却
+    return get_todolist_json( json )
   end
 
   # useridがnilでないことをチェック
@@ -428,6 +385,22 @@ class Main < Sinatra::Base
     else
       return session[:user_id]
     end
+  end
+
+  # 返却するtodoのリストの日付の形式を整える
+  def get_todolist_json ( json ) 
+    todo_data = []
+    JSON.parse(json).each do |data|
+      due_date =  data[:due_date].nil? ? "" : data[:due_date].strftime("%Y-%m-%d %H:%M")
+      todo_data << {
+        "id"=>data[:id] ,
+        "user_id"=>data[:user_id] ,
+        "content"=>data[:content] ,
+        "due_date"=>  due_date ,
+        "status"=>data[:status]
+      }
+    end
+    return todo_data.to_json
   end
 
   # start the server if ruby file executed directly

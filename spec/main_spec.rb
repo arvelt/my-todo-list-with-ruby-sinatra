@@ -150,6 +150,7 @@ describe 'Todolist APIのテスト' do
     json = JSON.parse(last_response.body)
     json.size.should_not eq(0)
     isExists = false
+    
     json.each do |data|
       if data["user_id"] == (user_id) and
          data["content"] == (message) and
