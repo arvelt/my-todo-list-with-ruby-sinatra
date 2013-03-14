@@ -14,6 +14,10 @@ class Main < Sinatra::Base
 
   Slim::Engine.default_options[:pretty] = true  #出力htmlを整形する設定  true=>する,false=>しない
 
+  #開発環境はリローダー使用
+  configure :development do
+    register Sinatra::Reloader
+  end
   #環境設定
   set :environment, :development
 

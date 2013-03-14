@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'sinatra'
+gem 'sinatra-reloader'
 gem 'sequel'
 gem 'omniauth'
 gem 'omniauth-google-oauth2'

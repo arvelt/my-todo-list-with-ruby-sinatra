@@ -1,7 +1,9 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    backports (2.7.1)
     diff-lcs (1.1.3)
+    eventmachine (1.0.0-x86-mingw32)
     faraday (0.8.5)
       multipart-post (~> 1.1)
     hashie (1.2.0)
@@ -28,6 +30,8 @@ GEM
     rack (1.5.2)
     rack-protection (1.3.2)
       rack
+    rack-test (0.6.2)
+      rack (>= 1.0)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)
       rspec-expectations (~> 2.12.0)
@@ -36,18 +40,23 @@ GEM
     rspec-expectations (2.12.1)
       diff-lcs (~> 1.1.3)
     rspec-mocks (2.12.2)
-    rspec-rails (1.3.2)
-      rack (>= 1.0.0)
-      rspec (>= 1.3.0)
     sequel (3.44.0)
     sinatra (1.3.4)
       rack (~> 1.4)
       rack-protection (~> 1.3)
       tilt (~> 1.3, >= 1.3.3)
+    sinatra-contrib (1.3.2)
+      backports (>= 2.0)
+      eventmachine
+      rack-protection
+      rack-test
+      sinatra (~> 1.3.0)
+      tilt (~> 1.3)
+    sinatra-reloader (1.0)
+      sinatra-contrib
     slim (1.3.6)
       temple (~> 0.5.5)
       tilt (~> 1.3.3)
-    sqlite3 (1.3.7)
     sqlite3 (1.3.7-x86-mingw32)
     temple (0.5.5)
     tilt (1.3.3)
@@ -59,8 +68,8 @@ DEPENDENCIES
   omniauth
   omniauth-google-oauth2
   rspec
-  rspec-rails
   sequel
   sinatra
+  sinatra-reloader
   slim
   sqlite3
