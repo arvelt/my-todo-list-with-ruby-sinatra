@@ -19,7 +19,7 @@ class Main < Sinatra::Base
     register Sinatra::Reloader
   end
   #環境設定
-  set :environment, :development
+  set :environment, ENV['SINATRA_ENV'] 
 
   #urlrootの場所を固定持ちさせる
   configure :development do
@@ -28,7 +28,7 @@ class Main < Sinatra::Base
   end
   configure :production do
     @@env = :pro
-    @@root = '/todolist/'
+    @@root = '/todolist-simple-sinatra/'
   end
   configure :production do
     @@env = :test
